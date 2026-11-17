@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>시민사회 동향</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap">
+<style>
+/* Layout: date index on the left, the selected day's report on the right; phones show one at a time. */
+:root{
+  --bg:#f2f4f7; --surface:#ffffff; --ink:#151a22; --muted:#5a6573; --line:#dde2e9; --accent:#1c4f8f; --accent-soft:#e6eef9;
+  --font-body:"Noto Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --font-display:"Noto Serif KR","Batang",serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#11151b; --surface:#1a2029; --ink:#e7eaef; --muted:#98a3b1; --line:#2a323e; --accent:#82b2f2; --accent-soft:#1f2b3c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11151b; --surface:#1a2029; --ink:#e7eaef; --muted:#98a3b1; --line:#2a323e; --accent:#82b2f2; --accent-soft:#1f2b3c; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.65}
+.app{max-width:1040px;margin:0 auto;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.brand{display:flex;flex-direction:column;gap:2px;margin-bottom:20px}
+.brand h1{font-family:var(--font-display);font-size:26px;line-height:1.25;margin:0;font-weight:700;text-wrap:balance}
+.brand p{margin:0;color:var(--muted);font-size:13px}
+.cols{display:grid;grid-template-columns:1fr;gap:24px}
+.list-pane,.report-pane{min-width:0}
+[data-view="list"] .report-pane{display:none}
+[data-view="report"] .list-pane{display:none}
+@media (min-width:800px){
+  .cols{grid-template-columns:270px minmax(0,1fr)}
+  [data-view="list"] .report-pane,[data-view="report"] .list-pane{display:block}
+  .back{display:none!important}
+  .list-pane{position:sticky;top:16px;align-self:start;max-height:calc(100vh - 32px);overflow-y:auto}
+}
+.month{font-size:12px;letter-spacing:.06em;color:var(--muted);margin:18px 0 8px;font-weight:700}
+.month:first-child{margin-top:0}
+.days{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.day{display:block;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.day:hover{border-color:var(--accent)}
+.day:focus-visible,.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.day[aria-current="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.day-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.day-date{font-family:var(--font-display);font-weight:600;font-size:16px}
+.day-count{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.day-sum{margin:2px 0 0;font-size:12.5px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.back{display:inline-block;margin-bottom:14px;color:var(--accent);text-decoration:none;font-size:14px}
+.report{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px 18px}
+.report-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 12px;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:14px}
+.report-head h2{font-family:var(--font-display);font-size:22px;line-height:1.3;margin:0;font-weight:700}
+.report-head .meta{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.lead{margin:0 0 16px;font-weight:500}
+.group{margin:0 0 20px}
+.group h3{font-size:13px;letter-spacing:.04em;color:var(--accent);margin:0 0 8px;font-weight:700}
+.group-note{margin:0;color:var(--muted);font-size:14px}
+.item{border-left:3px solid var(--line);padding:2px 0 2px 12px;margin:0 0 12px}
+.item-title{font-weight:700;margin:0 0 2px;overflow-wrap:anywhere}
+.tag{display:inline-block;font-size:11.5px;font-weight:500;color:var(--accent);background:var(--accent-soft);border-radius:4px;padding:0 6px;margin-right:6px;vertical-align:1px}
+.line{margin:0;color:var(--ink);font-size:14px;overflow-wrap:anywhere}
+.line a{color:var(--accent)}
+.limit{margin:18px 0 0;padding-top:12px;border-top:1px dashed var(--line);color:var(--muted);font-size:13px}
+.state{color:var(--muted);padding:24px 4px}
+.notice{margin:10px 0 0;font-size:12.5px;color:var(--muted)}
+.state strong{display:block;color:var(--ink);font-family:var(--font-display);font-size:17px;margin-bottom:4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+</head>
+<body>
+<div class="app" id="app" data-view="list">
+  <header class="brand">
+    <h1>시민사회 동향</h1>
+    <p>주요 시민사회단체의 기자회견·성명·논평·집회 일일 정리 · 매일 밤 11시경 갱신</p>
+    <p class="notice">AI가 검색해 자동으로 정리한 요약입니다. 정확하지 않을 수 있으니 중요한 내용은 출처 링크의 원문을 확인하세요.</p>
+  </header>
+  <div class="cols">
+    <nav class="list-pane" aria-label="날짜 목록" id="listPane"></nav>
+    <main class="report-pane">
+      <a class="back" href="#" id="back">← 날짜 목록</a>
+      <div id="reportPane"></div>
+    </main>
+  </div>
+</div>
+
+<script>
+(function(){
+  var WD=['일','월','화','수','목','금','토'];
+  var reports=[];
+  var loaded=false;
+  var app=document.getElementById('app');
+  var listPane=document.getElementById('listPane');
+  var reportPane=document.getElementById('reportPane');
+
+  function pd(s){
+    var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s||'');
+    if(!m)return null;
+    var d=new Date(+m[1],+m[2]-1,+m[3]);
+    return {y:+m[1],m:+m[2],d:+m[3],w:WD[d.getDay()]};
+  }
+  function label(s){var p=pd(s);return p?(p.m+'월 '+p.d+'일 ('+p.w+')'):s;}
+  function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;}
+  function clear(n){while(n.firstChild)n.removeChild(n.firstChild);}
+
+  function linkify(parent,text){
+    var parts=text.split(/(https?:\/\/[^\s)\]]+)/);
+    parts.forEach(function(p){
+      if(/^https?:\/\//.test(p)){
+        var a=document.createElement('a');a.href=p;a.target='_blank';a.rel='noopener noreferrer';a.textContent=p;parent.appendChild(a);
+      }else if(p){parent.appendChild(document.createTextNode(p));}
+    });
+  }
+
+  function renderBody(text,summary){
+    var box=document.createElement('div');
+    var lines=String(text||'').split(/\r?\n/);
+    var group=null,item=null,gotGroup=false;
+    lines.forEach(function(raw){
+      var l=raw.replace(/\*\*/g,'').replace(/^[-*]\s+/,'').replace(/^#+\s*/,'').trim();
+      if(!l)return;
+      if(l.indexOf('■')===0){
+        group=el('section','group');group.appendChild(el('h3',null,l.slice(1).trim()));box.appendChild(group);item=null;gotGroup=true;return;
+      }
+      if(l.indexOf('확인 한계')===0){box.appendChild(el('p','limit',l));return;}
+      if(l.indexOf('ㅁ')===0){
+        if(!group){group=el('section','group');box.appendChild(group);}
+        item=el('div','item');
+        var t=l.slice(1).trim();var tag='';
+        var m=/\[([^\]]+)\]/.exec(t);
+        if(m){tag=m[1];t=t.replace(m[0],'').replace(/\s+/g,' ').trim();}
+        var h=el('p','item-title');
+        if(tag)h.appendChild(el('span','tag',tag));
+        h.appendChild(document.createTextNode(t));
+        item.appendChild(h);group.appendChild(item);return;
+      }
+      if(l.indexOf('ㅇ')===0){
+        var p=el('p','line');linkify(p,l.slice(1).trim());
+        (item||group||box).appendChild(p);return;
+      }
+      if(!gotGroup){ if(l!==summary){box.appendChild(el('p','lead',l));} return; }
+      var n=el('p','group-note');linkify(n,l);(group||box).appendChild(n);
+    });
+    return box;
+  }
+
+  function renderList(selId){
+    clear(listPane);
+    if(!reports.length){return;}
+    var lastMonth='',ul=null;
+    reports.forEach(function(r){
+      var p=pd(r.id);
+      var mk=p?(p.y+'년 '+p.m+'월'):'기타';
+      if(mk!==lastMonth){
+        listPane.appendChild(el('div','month',mk));
+        ul=el('ul','days');listPane.appendChild(ul);lastMonth=mk;
+      }
+      var li=el('li');
+      var a=el('a','day');a.href='#'+r.id;
+      if(r.id===selId)a.setAttribute('aria-current','true');
+      var top=el('div','day-top');
+      top.appendChild(el('span','day-date',label(r.id)));
+      if(typeof r.count==='number')top.appendChild(el('span','day-count',r.count+'건'));
+      a.appendChild(top);
+      if(r.summary)a.appendChild(el('p','day-sum',r.summary));
+      li.appendChild(a);ul.appendChild(li);
+    });
+  }
+
+  function renderReport(r){
+    clear(reportPane);
+    var card=el('article','report');
+    var head=el('div','report-head');
+    head.appendChild(el('h2',null,label(r.id)+' 동향'));
+    var meta=[];
+    if(typeof r.count==='number')meta.push('총 '+r.count+'건');
+    head.appendChild(el('span','meta',meta.join(' · ')));
+    card.appendChild(head);
+    var holder=el('div');holder.appendChild(el('p','state','보고서를 불러오는 중…'));
+    card.appendChild(holder);
+    reportPane.appendChild(card);
+    window.__fetchText(r.id,function(t){
+      if(reportPane.firstChild!==card)return;
+      clear(holder);
+      if(t==null){holder.appendChild(el('p','state','보고서를 불러오지 못했어요.'));return;}
+      holder.appendChild(renderBody(t,r.summary));
+    });
+  }
+
+  function renderState(title,msg){
+    clear(reportPane);
+    var s=el('div','state');s.appendChild(el('strong',null,title));s.appendChild(document.createTextNode(msg));
+    reportPane.appendChild(s);
+  }
+
+  function route(){
+    var wide=window.matchMedia('(min-width:800px)').matches;
+    var id=decodeURIComponent((location.hash||'').replace(/^#/,''));
+    var cur=reports.filter(function(r){return r.id===id;})[0];
+    if(!cur && wide && reports.length){cur=reports[0];}
+    renderList(cur?cur.id:'');
+    if(cur){app.setAttribute('data-view','report');renderReport(cur);}
+    else{
+      app.setAttribute('data-view','list');
+      if(!loaded){renderState('불러오는 중','보고서 목록을 가져오고 있어요.');}
+      else if(!reports.length){renderState('아직 등록된 보고서가 없어요','매일 밤 11시경에 그날의 보고서가 자동으로 올라와요.');}
+      else{clear(reportPane);}
+    }
+    if(!reports.length){listPane.hidden=!wide?true:false;}else{listPane.hidden=false;}
+  }
+
+  window.addEventListener('hashchange',route);
+  window.matchMedia('(min-width:800px)').addEventListener('change',route);
+  route();
+
+  var timer=setTimeout(function(){
+    if(!loaded){renderState('아직 연결되지 않았어요','잠시 후 다시 열어 주세요. 로그인 상태와 공유 권한도 확인해 주세요.');}
+  },10000);
+
+  function ingest(snap){
+    var out=[];
+    snap.docs.forEach(function(d){
+      var v=d.data()||{};
+      out.push({id:d.id,summary:typeof v.summary==='string'?v.summary:'',count:typeof v.count==='number'?v.count:null,text:typeof v.text==='string'?v.text:''});
+    });
+    out.sort(function(a,b){return a.id<b.id?1:-1;});
+    reports=out;loaded=true;clearTimeout(timer);route();
+  }
+
+  var BASE='reports/';
+  function load(){
+    fetch(BASE+'index.json?'+Date.now(),{cache:'no-store'}).then(function(r){
+      if(r.status===404){return [];}
+      if(!r.ok)throw new Error('http '+r.status);
+      return r.json();
+    }).then(function(list){
+      var out=(Array.isArray(list)?list:[]).map(function(x){
+        return {id:String(x.id),summary:x.summary||'',count:typeof x.count==='number'?x.count:null,text:null};
+      });
+      out.sort(function(a,b){return a.id<b.id?1:-1;});
+      reports=out;loaded=true;clearTimeout(timer);route();
+    }).catch(function(){
+      loaded=true;clearTimeout(timer);renderState('불러오지 못했어요','잠시 후 다시 열어 주세요.');
+    });
+  }
+  var cache={};
+  window.__fetchText=function(id,cb){
+    if(cache[id]!=null){cb(cache[id]);return;}
+    fetch(BASE+id+'.txt?'+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error();return r.text();})
+      .then(function(t){cache[id]=t;cb(t);}).catch(function(){cb(null);});
+  };
+  load();
+})();
+</script>
+
+</body>
+</html>

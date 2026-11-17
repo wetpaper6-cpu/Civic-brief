@@ -1,1 +1,7 @@
-# Civic-brief
+# 시민사회 동향
+
+주요 시민사회단체의 기자회견·성명·논평·집회 일일 정리입니다. 매일 밤 자동으로 갱신됩니다.
+
+- `index.html`: 날짜 목록과 보고서를 보여주는 페이지
+- `reports/index.json`: 날짜별 요약 목록
+- `reports/YYYY-MM-DD.txt`: 그날의 보고서 전문
